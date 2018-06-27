@@ -1,0 +1,17 @@
+@import url('https://fonts.googleapis.com/css?family=VT323');
+body {
+    background-color: yellow;
+    font-family: 'VT323';
+    text-align: center;
+}
+
+#start {
+    animation:peak 2s ease infinite;
+}
+
+@keyframes peak {
+    0% { opacity:0; }
+    30% { opacity:1; }
+    70% { opacity:1; }
+    100% { opacity:0; }
+}
