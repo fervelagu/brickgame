@@ -1,163 +1,207 @@
 //CONSTANTS
 var canvas = document.getElementById('brickgame'),
     ctx = canvas.getContext('2d'),
-    x = 0,
-    y = 0,
+    outsideSquare = 12,
+    insideSquare = 10,
     score = 0,
     level = 0,
-    input = true,
-    dir = 'LR';
-    // images = {
-    //     moti: url('./moti.png'),
-    // }
+    max = canvas.width - 20,
+    random = Math.floor(Math.random() * (max));
 
 //CLASSES
-//board
-function Board(){
-    //draws canvas with background color #a4b6ad
-    ctx.fillStyle = "#a4b6ad";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    for (x = 0; x < canvas.width; x++){
-        for (y = 0; y < canvas.height; y++){
-        //draws grid
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
-        ctx.fillRect(x * 20, y * 20, 18, 18);
-        //draws squares as borders
-        ctx.fillStyle = "#a4b6ad";
-        ctx.fillRect(x * 20 + 2, y * 20 + 2, 14, 14);
-        //draws squares inside the borders, the filling squares
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
-        ctx.fillRect(x * 20 + 4, y * 20 + 4, 10, 10);
-        }
-    }
-}
-
-//obstacle
-var max = canvas.width - 20;
-var aux = 0;
-var random = Math.floor(Math.random() * (max));
-//Cae desde arriba y cuando toca a Motorbike es game over
-class Obstacle {
-    constructor(y){
-        this.y = y;
+class Board {
+    constructor(){
     }
 
     draw () {
-        ctx.fillStyle = "black";
-        ctx.fillRect(random, this.y+3, 12, 12);
+        //draws canvas with background color #a4b6ad
+        ctx.fillStyle = "#a4b6ad";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        for (var x = 0; x < canvas.width; x++){
+            for (var y = 0; y < canvas.height; y++){
+            //draws grid
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+            ctx.fillRect(x * 20, y * 20, 18, 18);
+            //draws squares as borders
+            ctx.fillStyle = "#a4b6ad";
+            ctx.fillRect(x * 20 + 2, y * 20 + 2, 14, 14);
+            //draws squares inside the borders, the filling squares
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+            ctx.fillRect(x * 20 + 4, y * 20 + 4, 10, 10);
+            }
+        }
     }
 
-    falls () {
-        setInterval(function(){
-            if(aux%2 === 0) ctx.fillRect(random, this.y+3, 12, 12);
-            else ctx.clearRect(0,0,50,50);
-            aux++;
-          },1000/20);
-    }
-        
-    // touches () {
-    //     if () {
-    //         ctx.clearRect(random, this.y+3, 12, 12);
-    //     }
-    // }
-        //var random = Math.floor(Math.random() * (this.max));
-        //     ctx.fillStyle = "black";
-        //     ctx.fillRect(random, this.y+3, 12, 12);
-        //     ctx.clearRect(random, this.y+3, 12, 12);
-        //     random+=1;
-        // }, 1000/60);
-
-
-}
-
-//bullet
-//Motorbike avienta bullets que cuando tocan a Obstacle este desaparece
-function Bullet(strokex,strokey,fillx,filly) {
-    this.strokex = strokex ? strokex : 6;
-    this.strokey = strokey ? strokey : 6;
-    this.fillx = fillx ? fillx : 8;
-    this.filly = filly ? filly : 8;
-    ctx.strokeRect(this.strokex, this.strokey, 10, 10); //outside
-    ctx.fillRect(this.fillx, this.filly, 6, 6); //inside
-}
-
-class Ball{
-    constructor(){
-        this.x = 100;
-        this.y = 100;
-        this.radius = 10;
-        this.color = "yellow";
-    }
-
-    draw(){
-        ctx.beginPath();
-        ctx.fillStyle = this.color;
-        ctx.arc(this.x,this.y,this.radius,0,Math.PI*2,true);
-        ctx.fill();
-        ctx.closePath();
+    clear (){
+        ctx.clearRect(0, 0, canvas.width, canvas.height); //down s' -11, +12
+        ctx.clearRect(0, 0, canvas.width, canvas.height); //+2
     }
 }
 
 //motorbike
 //Lanza bullets, muere cuando toca un Obstacle
-function Motorbike(){
-    //this.strokex=canvas.width/2;
-    //this.strokey=canvas.height +12;
-    //this.fillx=;
-    //this.filly=;
-    ctx.beginPath();
-    ctx.fillStyle = "black";
-    ctx.strokeRect(canvas.width/2, canvas.height-33+10, 10, 10); //top s' -11, +12
-    ctx.fillRect(canvas.width/2+2, canvas.height-33+12, 6, 6); //+2
-    ctx.strokeRect(canvas.width/2-11, canvas.height-22+10, 10, 10); //left s' -11, -22
-    ctx.fillRect(canvas.width/2-11+2, canvas.height-22+12, 6, 6); //+2
-    ctx.strokeRect(canvas.width/2+11, canvas.height-22+10, 10, 10); //right s' -11, +12
-    ctx.fillRect(canvas.width/2-11+24, canvas.height-22+12, 6, 6); //+2
-    ctx.closePath();
+class Motorbike {
+    constructor(){
+        //x of strokeRect of left square
+        //y of strokeRect of left square
+        //x of fillRect of left square
+        //y of fillRect of left square
 
-    this.attack = function(){};
-    this.goLeft = function(){};
-    this.goRight = function(){};
+        //initial position
+        this.left_xs = canvas.width/2-11;
+        this.left_ys = canvas.height-22+10;
+        this.left_xf = canvas.width/2-11+2;
+        this.left_yf = canvas.height-22+12;
+
+        this.top_xs = 128;
+        this.top_ys = canvas.height-23;
+        this.top_xf = canvas.width/2+2;
+        this.top_yf = canvas.height-21;
+
+        this.right_xs = canvas.width/2+11;
+        this.right_ys = canvas.height-22+10;
+        this.right_xf = canvas.width/2-11+24;
+        this.right_yf = canvas.height-22+12;
+
+        this.bottom_xs = canvas.width/2;
+        this.bottom_ys = canvas.height-33+21;
+        this.bottom_xf = canvas.width/2+2;
+        this.bottom_yf = canvas.height-33+23;
+    }
+
+    draw () {
+        ctx.beginPath();
+        ctx.fillStyle = "black";
+        //left
+        ctx.strokeRect(this.left_xs, this.left_ys, 10, 10); //left s' -11, -22
+        ctx.fillRect(this.left_xf, this.left_yf, 6, 6); //+2
+        //top
+        ctx.strokeRect(this.top_xs, this.top_ys, 10, 10); //top s' -11, +12
+        ctx.fillRect(this.top_xf, this.top_yf, 6, 6); //+2
+        //right
+        ctx.strokeRect(this.right_xs, this.right_ys, 10, 10); //right s' -11, +12
+        ctx.fillRect(this.right_xf, this.right_yf, 6, 6); //+2
+        //bottom
+        ctx.strokeRect(this.bottom_xs, this.bottom_ys, 10, 10); //down s' -11, +12
+        ctx.fillRect(this.bottom_xf, this.bottom_yf, 6, 6); //+2
+        ctx.closePath();
+    }
+
+    clear (){
+        ctx.clearRect(this.bottom_xs, this.bottom_ys, 10, 10); //down s' -11, +12
+        ctx.clearRect(this.bottom_xf, this.bottom_yf, 6, 6); //+2
+    }
+
+    goLeft (){
+        this.left_xs -= insideSquare+2;
+        this.left_xf -= outsideSquare;
+
+        this.top_xs -= insideSquare+2;
+        this.top_xf -= outsideSquare;
+
+        this.right_xs -= insideSquare+2;
+        this.right_xf -= outsideSquare;
+
+        this.bottom_xs -= insideSquare+2;
+        this.bottom_xf -= outsideSquare;
+
+        this.clear();
+        board.draw();
+        o.draw();
+        this.draw();
+    }
+
+    goRight (){
+        this.left_xs += insideSquare+2;
+        this.left_xf += outsideSquare;
+
+        this.top_xs += insideSquare+2;
+        this.top_xf += outsideSquare;
+
+        this.right_xs += insideSquare+2;
+        this.right_xf += outsideSquare;
+
+        this.bottom_xs += insideSquare+2;
+        this.bottom_xf += outsideSquare;
+        
+        this.clear();
+        board.draw();
+        o.draw();
+        this.draw();
+    }
+    attack () {
+        // alert("pium, pium");
+        b.draw();
+    }
 }
 
-// function Moto(){
-//     this.x = 100;
-//     this.y = 100;
-//     this.width = 70;
-//     this.height = 50;
-//     this.img = new Image()
-//     this.img.src = images.moti;
-//     this.img.onload = function(){
-//       this.draw();
-//     }.bind(this);
-//     this.draw = function(){
-//       ctx.drawImage(this.img,this.x,this.y,this.width,this.height);
-//     }
-//   }
+//Cae desde arriba y cuando toca a Motorbike es game over
+class Obstacle {
+    constructor(){
+        this.ys = 10;
+        this.yf = 6;
+    }
+
+    draw () {
+        //random initial position
+        // ctx.fillRect(random, this.y+3, 10, 10);
+        ctx.beginPath();
+        ctx.fillStyle = "black";
+        ctx.strokeRect(random, this.ys, 10, 10); //outside
+        ctx.fillRect(random+2, this.yf+6, 6, 6); //inside
+        ctx.closePath();
+    }
+
+    falls () { // decrease Y
+        setInterval(function(){
+            this.ys -= insideSquare+2;
+            this.yf -= outsideSquare;
+        },1000/20);
+    }
+}
+
+class Bullet {
+    constructor(){}
+    draw () {
+        //random initial position
+        // ctx.fillRect(random, this.y+3, 10, 10);
+        ctx.beginPath();
+        ctx.fillStyle = "black";
+        ctx.strokeRect(random, this.ys, 10, 10); //outside
+        ctx.fillRect(random+2, this.yf+6, 6, 6); //inside
+        ctx.closePath();
+    }
+}
+
 
 //INSTANCES
-var o = new Obstacle(20);
-var b = new Ball();
+var board = new Board();
+var o = new Obstacle();
+var m = new Motorbike();
+var b = new Bullet();
 
 //FUNCTIONS
 function update(){
-    Board();
-    //o.falls();
+    board.draw();
+    m.draw();
     o.draw();
-    Motorbike();
+    o.falls();
 }
 
 //LISTENERS
-// addEventListener("keydown", function (e) {
-//   switch (e.keyCode) {
-//     case 37:
-//       this.goLeft();
-//       break;
-//     case 39:
-//       this.goRight();
-//       break;
-//   }
-// });
+addEventListener("keydown", function (e) {
+  switch (e.keyCode) {
+    case 37:
+        m.goLeft();
+        break;
+    case 39:
+        m.goRight();
+        break;
+    case 38:
+        m.attack();
+        break;
+    }
+});
 
 update();
