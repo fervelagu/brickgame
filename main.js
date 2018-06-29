@@ -2,7 +2,7 @@
 var canvas = document.getElementById('brickgame'),
     ctx = canvas.getContext('2d'),
     obstacles = [];
-    bullets = [];
+    // bullets = [];
     frames = 0,
     outsideSquare = 12,
     insideSquare = 10,
@@ -44,6 +44,7 @@ class Board {
 //Lanza bullets, muere cuando toca un Obstacle
 class Motorbike {
     constructor(){
+        this.bullets = [];
         //x of strokeRect of left square
         //y of strokeRect of left square
         //x of fillRect of left square
@@ -122,12 +123,6 @@ class Motorbike {
         this.bottom_xf += outsideSquare;
     }
 
-    attack () {
-        // alert("pium, pium");
-        generateBullets();
-        drawBullets();
-    }
-
     checkIfTouch(item){
         this.x = this.left_xs;
         this.y = this.left_ys;
@@ -148,6 +143,7 @@ class Obstacle {
     constructor(){
         this.ys = 10;
         this.ran = random();
+        this.yf = 12;
         //bliss hack
         this.width = 10;
         this.height = 10;
@@ -168,23 +164,34 @@ class Obstacle {
 }
 
 class Bullet {
-    constructor(){
-        this.ys = 10;
+    constructor(character){
         this.width = 10;
         this.height = 10;
+        this.x = character.x + character.width/2 - this.width/2;
+        this.y = character.y - this.height;
+        this.speed = -10;
     }
 
     draw () {
+        this.y += this.speed;
         //random initial position
         // ctx.fillRect(random, this.y+3, 10, 10);
         ctx.beginPath();
         ctx.fillStyle = "black";
-        ctx.strokeRect(this.ran, this.ys, 10, 10); //outside
-        ctx.fillRect(this.ran+2, this.ys+2, 6, 6); //inside
+        ctx.strokeRect(this.x, this.y, 10, 10); //outside
+        ctx.fillRect(this.x+2, this.y+2, 6, 6); //inside
         ctx.closePath();
 
-        this.ys += insideSquare;
-        this.yf += outsideSquare-2;
+        // this.ys += insideSquare;
+        // this.yf += outsideSquare-2;
+    }
+    isTouching(item){
+        item.x = item.ran;
+        item.y = item.ys;
+        return (this.x < item.x + item.width) &&
+                (this.x + this.width > item.x) &&
+                (this.y < item.y + item.height) &&
+                (this.y + this.width > item.y);
     }
 }
 
@@ -211,8 +218,8 @@ function generateObstacles () {
 }
 
 function generateBullets (){
-    var b = new Bullet();
-    bullets.push(b);
+    var b = new Bullet(m);
+    m.bullets.push(b);
 }
 
 function drawObstacles () {
@@ -222,7 +229,7 @@ function drawObstacles () {
 }
 
 function drawBullets () {
-    bullets.forEach(function(b){
+    m.bullets.forEach(function(b){
         b.draw();
     });
 }
@@ -236,12 +243,20 @@ function checkObstacleCollitionWithBike(){
 }
 
 function checkObstacleWithBullets(){
-    //foreach de las ballas
-    //foreach de los obstaculos
+    m.bullets.forEach(function(b){
+        obstacles.forEach(function(o){
+            if(b.isTouching(o)){
+                obstacles.splice(obstacles.indexOf(o),1)
+                m.bullets.splice(m.bullets.indexOf(b),1)
+                document.getElementById('score').innerHTML = 'score: ' + score++;
+        }  
+        })
+    })
 }
 
 function update(){
     frames++;
+    checkObstacleWithBullets();
     checkObstacleCollitionWithBike();
     random();
     ctx.clearRect(0,0,canvas.width,canvas.height);
@@ -251,21 +266,15 @@ function update(){
         generateObstacles();
     }
     drawObstacles();
-    
-    addEventListener("keydown", function(e){
-        if(e.keyCode === 38){
-            generateBullets();
-            drawBullets();
-            console.log("fuck");
-        }
-    });
+    drawBullets();
+
 }
 
 function gameOver(){
     clearInterval(interval);
     ctx.fillStyle = "black";
     ctx.font = '28px VT323';
-    ctx.fillText("GAME OVER", 80,200);
+    ctx.fillText("GAME OVER", 0,0);
 }
 
 //LISTENERS
@@ -278,7 +287,7 @@ addEventListener("keydown", function (e) {
         m.goRight();
         break;
     case 38:
-        m.attack();
+        generateBullets();
         break;
     }
 });
