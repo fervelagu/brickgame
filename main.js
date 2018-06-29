@@ -1,12 +1,15 @@
 //CONSTANTS
 var canvas = document.getElementById('brickgame'),
     ctx = canvas.getContext('2d'),
+    obstacles = [];
+    bullets = [];
+    frames = 0,
     outsideSquare = 12,
     insideSquare = 10,
     score = 0,
     level = 0,
     max = canvas.width - 20,
-    random = Math.floor(Math.random() * (max));
+    interval = 0;
 
 //CLASSES
 class Board {
@@ -14,6 +17,9 @@ class Board {
     }
 
     draw () {
+        //draws score and speed texts
+        // ctx.font = '18px white VT323';
+        // ctx.fillText('Hello world', 5, 5);
         //draws canvas with background color #a4b6ad
         ctx.fillStyle = "#a4b6ad";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -31,11 +37,6 @@ class Board {
             ctx.fillRect(x * 20 + 4, y * 20 + 4, 10, 10);
             }
         }
-    }
-
-    clear (){
-        ctx.clearRect(0, 0, canvas.width, canvas.height); //down s' -11, +12
-        ctx.clearRect(0, 0, canvas.width, canvas.height); //+2
     }
 }
 
@@ -68,6 +69,11 @@ class Motorbike {
         this.bottom_ys = canvas.height-33+21;
         this.bottom_xf = canvas.width/2+2;
         this.bottom_yf = canvas.height-33+23;
+
+        //another bliss fu... hack
+        this.width = 30;
+        this.height = 10;
+
     }
 
     draw () {
@@ -88,11 +94,6 @@ class Motorbike {
         ctx.closePath();
     }
 
-    clear (){
-        ctx.clearRect(this.bottom_xs, this.bottom_ys, 10, 10); //down s' -11, +12
-        ctx.clearRect(this.bottom_xf, this.bottom_yf, 6, 6); //+2
-    }
-
     goLeft (){
         this.left_xs -= insideSquare+2;
         this.left_xf -= outsideSquare;
@@ -105,11 +106,6 @@ class Motorbike {
 
         this.bottom_xs -= insideSquare+2;
         this.bottom_xf -= outsideSquare;
-
-        this.clear();
-        board.draw();
-        o.draw();
-        this.draw();
     }
 
     goRight (){
@@ -124,15 +120,26 @@ class Motorbike {
 
         this.bottom_xs += insideSquare+2;
         this.bottom_xf += outsideSquare;
-        
-        this.clear();
-        board.draw();
-        o.draw();
-        this.draw();
     }
+
     attack () {
         // alert("pium, pium");
-        b.draw();
+        generateBullets();
+        drawBullets();
+    }
+
+    checkIfTouch(item){
+        this.x = this.left_xs;
+        this.y = this.left_ys;
+        item.x = item.ran;
+        item.y = item.ys;
+        //console.log(this.x,this.y);
+        var collition = (this.x < item.x + item.width) && 
+                        (this.x + this.width > item.x) && 
+                        (this.y < item.y + item.height) && 
+                        (this.y + this.height > item.y);
+        console.log(collition);
+        return  collition;
     }
 }
 
@@ -140,7 +147,10 @@ class Motorbike {
 class Obstacle {
     constructor(){
         this.ys = 10;
-        this.yf = 6;
+        this.ran = random();
+        //bliss hack
+        this.width = 10;
+        this.height = 10;
     }
 
     draw () {
@@ -148,45 +158,114 @@ class Obstacle {
         // ctx.fillRect(random, this.y+3, 10, 10);
         ctx.beginPath();
         ctx.fillStyle = "black";
-        ctx.strokeRect(random, this.ys, 10, 10); //outside
-        ctx.fillRect(random+2, this.yf+6, 6, 6); //inside
+        ctx.strokeRect(this.ran, this.ys, 10, 10); //outside
+        ctx.fillRect(this.ran+2, this.ys+2, 6, 6); //inside
         ctx.closePath();
-    }
 
-    falls () { // decrease Y
-        setInterval(function(){
-            this.ys -= insideSquare+2;
-            this.yf -= outsideSquare;
-        },1000/20);
+        this.ys += insideSquare;
+        this.yf += outsideSquare-2;
     }
 }
 
 class Bullet {
-    constructor(){}
+    constructor(){
+        this.ys = 10;
+        this.width = 10;
+        this.height = 10;
+    }
+
     draw () {
         //random initial position
         // ctx.fillRect(random, this.y+3, 10, 10);
         ctx.beginPath();
         ctx.fillStyle = "black";
-        ctx.strokeRect(random, this.ys, 10, 10); //outside
-        ctx.fillRect(random+2, this.yf+6, 6, 6); //inside
+        ctx.strokeRect(this.ran, this.ys, 10, 10); //outside
+        ctx.fillRect(this.ran+2, this.ys+2, 6, 6); //inside
         ctx.closePath();
+
+        this.ys += insideSquare;
+        this.yf += outsideSquare-2;
     }
 }
 
-
 //INSTANCES
 var board = new Board();
-var o = new Obstacle();
 var m = new Motorbike();
-var b = new Bullet();
 
 //FUNCTIONS
+function startGame(){
+    frames = 0;
+    obstacles = [];
+    board = new Board();
+    m = new Motorbike();
+    interval = setInterval(update, 1000/60)
+}
+
+function random () {
+    return Math.floor(Math.random() * (max));
+}
+
+function generateObstacles () {
+    var o = new Obstacle();
+    obstacles.push(o);
+}
+
+function generateBullets (){
+    var b = new Bullet();
+    bullets.push(b);
+}
+
+function drawObstacles () {
+    obstacles.forEach(function(o){
+        o.draw();
+    });
+}
+
+function drawBullets () {
+    bullets.forEach(function(b){
+        b.draw();
+    });
+}
+
+function checkObstacleCollitionWithBike(){
+    obstacles.forEach(function(o){
+        if(m.checkIfTouch(o)){
+            gameOver();
+        }
+    })
+}
+
+function checkObstacleWithBullets(){
+    //foreach de las ballas
+    //foreach de los obstaculos
+}
+
 function update(){
+    frames++;
+    checkObstacleCollitionWithBike();
+    random();
+    ctx.clearRect(0,0,canvas.width,canvas.height);
     board.draw();
     m.draw();
-    o.draw();
-    o.falls();
+    if (frames%10 === 0){
+        generateObstacles();
+    }
+    drawObstacles();
+    
+    addEventListener("keydown", function(e){
+        if(e.keyCode === 38){
+            generateBullets();
+            drawBullets();
+            console.log("fuck");
+        }
+    });
+}
+
+function gameOver(){
+    clearInterval(interval);
+    ctx.fillStyle = "black";
+    ctx.font = '28px VT323';
+    ctx.fillText("GAME OVER", 80,200);
 }
 
 //LISTENERS
@@ -204,4 +283,10 @@ addEventListener("keydown", function (e) {
     }
 });
 
-update();
+addEventListener("keydown", function(e){
+    if(e.keyCode === 27){
+      startGame();
+    }
+});
+
+startGame();

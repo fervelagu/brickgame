@@ -3,10 +3,19 @@ body {
     background-color: yellow;
     font-family: 'VT323';
     text-align: center;
+    font-size: 30px;
 }
 
 #start {
     animation:peak 2s ease infinite;
+}
+
+.disabled {
+    display:none;
+}
+
+.active {
+    display: block;
 }
 
 @keyframes peak {
