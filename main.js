@@ -248,7 +248,8 @@ function checkObstacleWithBullets(){
             if(b.isTouching(o)){
                 obstacles.splice(obstacles.indexOf(o),1)
                 m.bullets.splice(m.bullets.indexOf(b),1)
-                document.getElementById('score').innerHTML = 'score: ' + score++;
+                // document.getElementById('score').innerHTML = 'score: ' + score++;
+                document.getElementById('score').innerHTML = 'score: ' + ++score;
         }  
         })
     })
@@ -272,9 +273,7 @@ function update(){
 
 function gameOver(){
     clearInterval(interval);
-    ctx.fillStyle = "black";
-    ctx.font = '28px VT323';
-    ctx.fillText("GAME OVER", 0,0);
+    document.getElementById('start').innerHTML = '..::GAME OVER::.. <br> ..::ESC to restart::..';
 }
 
 //LISTENERS
